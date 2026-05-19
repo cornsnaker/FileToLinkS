@@ -267,9 +267,24 @@
     (function () {
         const STREAM_URL = {{ src|tojson }};
         // Derive sibling endpoints from the stream URL by inserting the
-        // route prefix before `MRVIOLETSTREAMBOT-`.
+        // route prefix as its own path segment immediately before the
+        // `MRVIOLETSTREAMBOT-*` segment, using URL/pathname manipulation
+        // instead of brittle string replacement.
         function withPrefix(prefix) {
-            return STREAM_URL.replace('/MRVIOLETSTREAMBOT-', '/' + prefix + '/MRVIOLETSTREAMBOT-');
+            const url = new URL(STREAM_URL, window.location.href);
+            const segments = url.pathname.split('/').filter(Boolean);
+            const idx = segments.findIndex(seg => seg.startsWith('MRVIOLETSTREAMBOT-'));
+
+            if (idx === -1) {
+                // If we can't find the expected segment, fall back to the original URL.
+                // This avoids generating a structurally invalid path.
+                return url.toString();
+            }
+
+            segments.splice(idx, 0, prefix);
+            url.pathname = '/' + segments.join('/');
+
+            return url.toString();
         }
         const TRACKS_URL = withPrefix('api/tracks');
         const REMUX_BASE = withPrefix('remux');
