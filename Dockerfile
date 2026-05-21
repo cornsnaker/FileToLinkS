@@ -10,7 +10,6 @@ RUN apt-get update && \
         git \
         build-essential \
         libssl-dev \
-        ffmpeg \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
